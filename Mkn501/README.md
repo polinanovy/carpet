@@ -1,1 +1,1 @@
-## Moon shadow for Carpet-2 detector of Baksan Neutrino Observatory
+## Searching for events detected by Carpet-2, which matches with blazar Mkn 501
