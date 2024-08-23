@@ -14,8 +14,8 @@ import random
 from scipy.special import erfinv
 import time
 
-RES = 4.7 #resolution of Carpet
-DA_c = np.cos(4.7 * np.pi / 180)
+RES = 4.7 #resolution of Carpet, deg
+DA_c = np.cos(4.7 * np.pi / 180) #Signal circle converted to delta alpha
 
 longuitude = 42.684872 # Carpet
 latitude = 43.273004 # Carpet
@@ -45,6 +45,10 @@ class Carpet():
         self.phi = None
 
 def GetLHAASOData():
+    '''
+    Getting LHAASO data from the catalogue.
+    Downloaded at: https://cdsarc.cds.unistra.fr/viz-bin/cat/J/ApJS/271/25
+    '''
     data = []
     fop = open('catalog.dat')
     n = '' #string for objects names
@@ -76,12 +80,20 @@ def GetLHAASOData():
     return data
 
 def equ2ga(equ):
-    """
-    Convert Equatorial to Galactic coordinates (J2000.0)
-    Input: [ra,dec] in decimal degrees
-    Returns: [l,b] in decimal degrees
+    '''
+    Converts Equatorial to Galactic coordinates (J2000.0)
     Source: https://www.atnf.csiro.au/people/Tobias.Westmeier/tools_coords.php
-    """
+
+    Parameters
+    ----------
+    [ra, dec] : array
+        Right Ascension and Declination in decimal degrees
+    
+    Returns
+    -------
+    [l, b] : array
+        Galactic longitude and galactic latitude in decimal degrees
+    '''
     ra = np.radians(equ[0])
     dec = np.radians(equ[1])
 
@@ -96,6 +108,9 @@ def equ2ga(equ):
     return np.array([np.degrees(l), np.degrees(b)])
 
 def GetCarpetData(file, Photon=True):
+    '''
+    Getting Carpet data, assigning some column values as class attributes.
+    '''
     if file == '2024_001-102_n.txt': #for 2024 data we have different coloumns in file
         idx = 8 #index of coloumn with n_mu in different files
     else:
@@ -128,6 +143,24 @@ def GetCarpetData(file, Photon=True):
     return data
 
 def Angle(carpet_data, RA, DEC):
+    '''
+    Angle between the LHAASO object and a Carpet event.
+
+    Parameters
+    ----------
+    carpet_data : array
+        Array of Carpet events.
+    RA : float
+        Right Ascension of the LHAASO object.
+    DEC : float
+        Declination of the LHAASO object.
+
+    Returns
+    -------
+    da : array
+        Angle between the LHAASO object and the Carpet event.
+
+    '''
     RA_b = RA * np.pi / 180
     DEC_b = DEC * np.pi / 180
     ra = [o.RA * np.pi / 180 for o in carpet_data]
@@ -137,7 +170,11 @@ def Angle(carpet_data, RA, DEC):
         da.append(np.sin(DEC_b)*np.sin(dec[i]) + np.cos(DEC_b)*np.cos(dec[i])*np.cos(RA_b-ra[i]))
     return da
 
-def Events_match(carpet_data, lhaaso_obj):
+def Events_match(carpet_data, lhaaso_obj, DA_c = np.cos(4.7 * np.pi / 180)):
+    '''
+    Matching events that fall into the resolution circle around the LHAASO object
+    
+    '''
     DA = Angle(carpet_data, lhaaso_obj.RA, lhaaso_obj.DEC)
     m = 0
     for i in DA:
@@ -184,7 +221,23 @@ def sidtime(date): #Sidereal time for AltAz coordinates
     return sdeg #s in degrees
 
 def equatorial(A, Z, s):
-    #RA and DEC in degrees from azimuth and zenith in degrees
+    '''
+    Converting AltAz to Equatorial coordinates
+
+    Parameters
+    ----------
+    A : float
+        Altitude in degrees
+    Z : float
+        Azimuth in degrees
+    s : float
+        Sidereal time in radians
+
+    Returns
+    -------
+    [ra, dec] : array
+        Right Ascension and Declination in decimal degrees
+    '''
     s = s * np.pi / 180
     A = A * np.pi / 180
     sinZ = math.sin(Z * np.pi / 180)
@@ -209,13 +262,14 @@ def equatorial(A, Z, s):
    
 def shuffleCarpet(carpet_data):
     #Create MC data according to S.Troitsky
-    """
-    Из каталога фотонных кандидатов берутся случайным образом зенитный угол от одного события
-    и азимутальный угол от другого события. Приписывается случайное время прихода (звездное время,
-    равномерное распределение от 0 до 24 ч). Восстанавливаются экваториальные координаты 
-    случайного события(RA, DEC). Таким образом, составляется каталог случайных событий той же 
-    длины, что реальное число фотонных кандидатов в данных.
-    """
+    '''
+    From the catalog of photon candidates, the zenith angle from one event and 
+    the azimuthal angle from another event are randomly selected. A random arrival time 
+    (sidereal time, uniformly distributed between 0 and 24 hours) is assigned. 
+    The equatorial coordinates (RA, DEC) of a random event are then reconstructed. 
+    In this way, a catalog of random events is compiled, with the same length as 
+    the actual number of photon candidates in the data.
+    '''
     zenith = [o.theta for o in carpet_data]
     azimuth = [o.phi for o in carpet_data]
     data = []
@@ -253,11 +307,12 @@ if __name__ == "__main__":
             continue
         
         print("Number of matches with ", lh.name, " in real data = ", match_obs) 
-        
+
+        #Creating a separate file for each object with the object name, number of matches, p-value and sigma
         fop = open(lh.name + 'matches_pval.txt', 'w')
         fop.write("Number of matches with " + lh.name + " in real data = " + str(match_obs) + '\n')
     
-        M = 0 # successful trials
+        M = 0 # successful trials (when the number of real mathces is bigger than the number of matches with the MC generated data) 
         n = []
         for i in range(N_SIM):
             carpet = shuffleCarpet(carpet_obs)
@@ -266,9 +321,13 @@ if __name__ == "__main__":
             if match_obs <= match:
                 M += 1
             n.append(match)
+
+        #Calculating p-value using the standard formula
         pval = (M + 1)/(N_SIM + 1)
         print("p-value = ", pval)
         fop.write("p-value = " + str(pval) + '\n')
+
+        #Calculating sigma from the p-value using Gaussian distribution. Needs reviewing!
         xsigmas = erfinv(1-pval) * np.sqrt(2.)
         print("in sigmas this is =",xsigmas)
         fop.write("in sigmas this is =" + str(xsigmas) + '\n')
