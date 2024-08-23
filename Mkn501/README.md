@@ -9,6 +9,6 @@
 
 ## Data
 - Cascade events detected by IceCube
-- Track-like events (Gold and Bronze) detected by IceCube
+- Track-like events (Gold and Bronze) detected by IceCube https://gcn.gsfc.nasa.gov/amon_icecube_gold_bronze_events.html
 
   
