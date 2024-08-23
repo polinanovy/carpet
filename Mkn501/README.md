@@ -8,7 +8,7 @@
 - **angle.py** - program for calculating angle between Carpet's event and neutrino
 
 ## Data
-- Cascade events detected by IceCube
+- Cascade events detected by IceCube https://gcn.gsfc.nasa.gov/amon_icecube_cascade_events.html
 - Track-like events (Gold and Bronze) detected by IceCube https://gcn.gsfc.nasa.gov/amon_icecube_gold_bronze_events.html
 
   
