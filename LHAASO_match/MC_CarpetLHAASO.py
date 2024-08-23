@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-p-value for all LHAASO objects
+Calculating significance (p-value) of photon excess from LHAASO objects using Monte Carlo to generate randomised data.
 """
 
 import numpy as np
