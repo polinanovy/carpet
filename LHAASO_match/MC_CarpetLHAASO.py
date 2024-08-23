@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-p-value for all LHAASO objects - final version
+p-value for all LHAASO objects
 """
 
 import numpy as np
 from datetime import datetime, timedelta
-from astropy.coordinates import SkyCoord
-from astropy import units as u
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import math
@@ -15,8 +13,6 @@ import cmath
 import random
 from scipy.special import erfinv
 import time
-
-st = time.time()
 
 RES = 4.7 #resolution of Carpet
 DA_c = np.cos(4.7 * np.pi / 180)
@@ -50,7 +46,7 @@ class Carpet():
 
 def GetLHAASOData():
     data = []
-    fop = open('catalog.dat.txt')
+    fop = open('catalog.dat')
     n = '' #string for objects names
     for line in fop.readlines():
         sl = line.split('|')
@@ -66,6 +62,8 @@ def GetLHAASOData():
         #in the case there are two detectors for one object
         if sl[0] == n: 
             continue
+        if float(sl[3]) < 5 or float(sl[3]) > 76:
+            continue
         l = LHAASO()
         l.name = sl[0]
         n = sl[0]
@@ -73,8 +71,7 @@ def GetLHAASOData():
         l.RA  = float(sl[2])
         l.DEC = float(sl[3])
         l.unc95 = float(sl[4])
-        if l.DEC>5 and l.DEC<76:
-            data.append(l)
+        data.append(l)
     fop.close()
     return data
 
@@ -108,7 +105,7 @@ def GetCarpetData(file, Photon=True):
     for line in fop.readlines():
         sl = line.split()
         if Photon: #Read only photon-like candidates
-            if float(sl[idx]) != 0:
+            if np.log10((float(sl[idx])+0.1)/float(sl[idx+9])) > -5.5: #float(sl[idx]) != 0:
                 continue
         c = Carpet()
         year = '20' + sl[0]
@@ -126,7 +123,6 @@ def GetCarpetData(file, Photon=True):
         c.b = lb[1]
         c.phi = float(sl[idx+3])
         c.theta = float(sl[idx+4])
-            
         data.append(c)
     fop.close()
     return data
@@ -136,57 +132,18 @@ def Angle(carpet_data, RA, DEC):
     DEC_b = DEC * np.pi / 180
     ra = [o.RA * np.pi / 180 for o in carpet_data]
     dec = [o.DEC * np.pi / 180 for o in carpet_data]
-    
     da = []
     for i in range(len(ra)):
         da.append(np.sin(DEC_b)*np.sin(dec[i]) + np.cos(DEC_b)*np.cos(dec[i])*np.cos(RA_b-ra[i]))
-        
     return da
 
-def Angle_one(RA_carp, DEC_carp, lhaaso_obj):
-    """
-    Function for angle between the source and one carpet event
-    """
-    RA_obj = lhaaso_obj.RA
-    DEC_obj = lhaaso_obj.DEC
-    da = np.sin(DEC_obj)*np.sin(RA_carp) + np.cos(DEC_obj)*np.cos(DEC_carp)*np.cos(RA_obj-RA_carp)
-    return da
-
-def Events_match(carpet_data, lhaaso_obj, Photon=True):
-    obj = lhaaso_obj.name
-    RA_obj = lhaaso_obj.RA
-    DEC_obj = lhaaso_obj.DEC
-    Detector = lhaaso_obj.detect
+def Events_match(carpet_data, lhaaso_obj):
+    DA = Angle(carpet_data, lhaaso_obj.RA, lhaaso_obj.DEC)
     m = 0
-    DA_carpet=[]
-    
-    DA_res = np.cos(4.7 * np.pi / 180) #delta alpha of the Carpet resolution
-    
-    DA_carpet=Angle(carpet_data, RA_obj, DEC_obj)
-    for DA in DA_carpet:
-            if DA>=DA_res:
-                m+=1
-    return m
-'''
-    
-    if Photon:
-        fop = open('Match_photon.txt', 'w')
-    else:
-        fop = open('Match_allcarpet.txt', 'w')
-    fop.write('#LHAASO name      Detect.   RA   DEC   DateC       TimeC   CRA  CDEC   Ne \n')
-    for carp in carpet_data:
-        #c_carpet = SkyCoord(ra=carp.RA*u.degree, dec=carp.DEC*u.degree, frame='icrs')
-        #c_obj = SkyCoord(ra=RA_obj*u.degree, dec=DEC_obj*u.degree, frame='icrs')
-        #check separation between two objects and Carpet resolution
-        #sep=c_obj.separation(c_carpet).degree
-        da_obj=Angle(carp, lhaaso_obj) #delta alpha of the Carpet event
-        if  da_obj>=DA_c:
+    for i in DA:
+        if i >= DA_c:
             m += 1
-            fop.write(obj + ' ' + Detector + ' ' + str(RA_obj) + ' ' + str(DEC_obj) +\
-                      ' ' + str(carp.date) + ' ' + str(carp.RA) + ' ' + str(carp.DEC) + ' ' + str(carp.Ne) + '\n')
-    fop.close()
-    '''
-
+    return m
 
 def PlotAngle(carpet_data, da, obj):
     t = [o.date for o in carpet_data]
@@ -208,7 +165,6 @@ def PlotAngle(carpet_data, da, obj):
                 ax.plot(t[i], da[i], 'bo', label='Carpet events')
     
     ax.axhline(DA_c, color='k', label='Ang.res(4.7deg)')
-     
     plt.title(obj) 
     plt.savefig('Angle.png',bbox_inches='tight')
     plt.clf()
@@ -229,6 +185,7 @@ def sidtime(date): #Sidereal time for AltAz coordinates
 
 def equatorial(A, Z, s):
     #RA and DEC in degrees from azimuth and zenith in degrees
+    s = s * np.pi / 180
     A = A * np.pi / 180
     sinZ = math.sin(Z * np.pi / 180)
     sinA = math.sin(A)
@@ -273,6 +230,8 @@ def shuffleCarpet(carpet_data):
         c.DEC = alphadelta[1]
         c.Ne = carp.Ne
         c.mu = carp.mu
+        lb = equ2ga([c.RA, c.DEC])
+        c.b = lb[1]
         data.append(c)
     return data
 
@@ -282,25 +241,27 @@ if __name__ == "__main__":
              '2021_001-365_n.txt', '2022_001-365_n.txt', '2023_001-365_n.txt', \
              '2024_001-102_n.txt']
     lhaaso = GetLHAASOData()
-    carpet = []
-    fop = open('allmatches', 'w') 
+    carpet_obs = []
     for file in files:
         c = GetCarpetData(file, Photon)
-        carpet += c
+        carpet_obs += c
     
     for lh in lhaaso:
-        fop = open(lh.name + 'matches_pval.txt', 'w') 
-        match_obs = Events_match(carpet, lh, Photon)
+        st = time.time()
+        match_obs = Events_match(carpet_obs, lh)
         if match_obs == 0:
             continue
+        
         print("Number of matches with ", lh.name, " in real data = ", match_obs) 
-        fop.write("Number of matches with " + lh.name + " in real data = " + str(match_obs) + '\n')  
+        
+        fop = open(lh.name + 'matches_pval.txt', 'w')
+        fop.write("Number of matches with " + lh.name + " in real data = " + str(match_obs) + '\n')
     
         M = 0 # successful trials
         n = []
         for i in range(N_SIM):
-            carpet_new = shuffleCarpet(carpet)
-            match = Events_match(carpet_new, lh, Photon)
+            carpet = shuffleCarpet(carpet_obs)
+            match = Events_match(carpet, lh)
             print("Number of matches in", i, "simulated data = ", match)
             if match_obs <= match:
                 M += 1
@@ -316,13 +277,5 @@ if __name__ == "__main__":
         fop.write('n_expected = ' + str(n_expected) + '\n')
         
         fop.close()
-
-
-print("Time: %.03f s" % (time.time() - st))
-
-
-
-
-
-
-
+        
+        print("Time: %.03f s" % (time.time() - st))
