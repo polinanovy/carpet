@@ -1,0 +1,30 @@
+;EVENT;EVENT;EVENT;OBSERVATION;OBSERVATION;OBSERVATION;OBSERVATION;OBSERVATION;OBSERVATION;OBSERVATION;OBSERVATION;OBSERVATION;OBSERVATION
+;RunEventNum;Date;TimeUT;RevNum;Stream;NoticeType;RA;Dec;Error90;Error50;Energy;FAR;Comments
+0;139644_63900267;24/07/14;14:57:38.54;0;26;Cascade;243.5028;-40.8882;11.08;6.08;131.01;0.3110;IceCube Cascade event. The position error is the combined statistical and the systematic.
+1;139582_13078951;24/06/26;04:36:35.63;0;26;Cascade;141.4441;-11.4894;30.89;16.95;20.35;0.9991;IceCube Cascade event. The position error is the combined statistical and the systematic.
+2;139414_34468187;24/05/18;06:50:07.88;0;26;Cascade;180.3930;+21.5767;15.38;8.44;40.74;0.3456;IceCube Cascade event. The position error is the combined statistical and the systematic.
+3;139293_45286937;24/04/16;17:10:31.22;0;26;Cascade;246.5961;+16.9163;5.39;2.96;317.32;0.3110;IceCube Cascade event. The position error is the combined statistical and the systematic.
+4;138802_36470430;23/12/30;09:41:46.57;0;26;Cascade;54.4303;+8.9725;11.28;6.19;19.83;1.0021;IceCube Cascade event. The position error is the combined statistical and the systematic.
+5;138069_72184188;23/06/22;09:58:56.53;0;26;Cascade;225.7319;+75.3567;5.59;3.06;52.29;0.3189;IceCube Cascade event. The position error is the combined statistical and the systematic.
+6;138065_72143074;23/06/21;01:55:50.36;0;26;Cascade;104.9218;-29.8392;4.44;2.44;330.07;0.3110;IceCube Cascade event. The position error is the combined statistical and the systematic.
+7;138035_55730330;23/06/10;23:59:35.57;0;26;Cascade;160.9127;+0.9518;10.51;5.76;68.82;0.5694;IceCube Cascade event. The position error is the combined statistical and the systematic.
+8;137930_36941090;23/05/11;05:45:34.98;0;26;Cascade;288.4037;+0.3537;12.69;6.96;61.56;0.6396;IceCube Cascade event. The position error is the combined statistical and the systematic.
+9;137891_38931474;23/04/30;08:42:02.63;0;26;Cascade;23.9720;+38.9953;79.99;43.89;61.87;0.3110;IceCube Cascade event. The position error is the combined statistical and the systematic.
+10;137845_43811235;23/04/17;20:04:38.42;0;26;Cascade;252.9321;-58.6351;9.03;4.95;83.41;0.3110;IceCube Cascade event. The position error is the combined statistical and the systematic.
+11;137786_1524801;23/03/29;20:30:08.31;0;26;Cascade;133.4575;-36.7572;7.41;4.06;46.76;0.3110;IceCube Cascade event. The position error is the combined statistical and the systematic.
+12;137527_43987982;23/01/09;11:12:11.29;0;26;Cascade;174.8091;+45.3298;7.07;3.88;55.56;0.3114;IceCube Cascade event. The position error is the combined statistical and the systematic.
+13;137489_30229466;22/12/29;22:57:12.76;0;26;Cascade;27.2437;+36.8047;6.01;3.30;85.19;0.3110;IceCube Cascade event. The position error is the combined statistical and the systematic.
+14;137167_67425471;22/10/18;21:13:59.70;0;26;Cascade;90.8799;+37.5748;17.43;9.56;60.51;0.3110;IceCube Cascade event. The position error is the combined statistical and the systematic.
+15;137007_22247606;22/09/03;01:46:39.59;0;26;Cascade;109.0181;+4.6516;34.45;18.90;19.33;1.0053;IceCube Cascade event. The position error is the combined statistical and the systematic.
+16;136985_60401984;22/08/26;21:38:13.69;0;26;Cascade;81.9293;+29.7022;20.77;11.39;24.59;0.4262;IceCube Cascade event. The position error is the combined statistical and the systematic.
+17;136889_25590129;22/08/01;04:08:34.26;0;26;Cascade;150.1126;-9.1693;12.90;7.08;111.46;0.3110;IceCube Cascade event. The position error is the combined statistical and the systematic.
+18;136876_7950373;22/07/28;08:20:30.29;0;26;Cascade;258.8350;-22.6512;8.00;4.39;49.51;0.3110;IceCube Cascade event. The position error is the combined statistical and the systematic.
+19;136768_63259630;22/06/25;14:14:38.53;0;26;Cascade;179.3921;-4.1645;5.86;3.22;481.28;0.3110;IceCube Cascade event. The position error is the combined statistical and the systematic.
+20;136692_6590287;22/06/02;08:06:02.26;0;26;Cascade;49.9691;-63.7976;14.52;7.97;103.80;0.3110;IceCube Cascade event. The position error is the combined statistical and the systematic.
+21;136673_4249774;22/05/27;20:27:01.77;0;26;Cascade;226.1220;+4.8579;8.01;4.39;71.10;0.5473;IceCube Cascade event. The position error is the combined statistical and the systematic.
+22;136027_40906130;21/12/10;21:38:16.30;0;26;Cascade;142.6953;+16.0864;105.24;57.74;26.05;0.9636;IceCube Cascade event. The position error is the combined statistical and the systematic.
+23;135946_6354173;21/11/28;02:43:07.79;0;26;Cascade;26.9641;+0.7524;18.96;10.40;48.12;0.7695;IceCube Cascade event. The position error is the combined statistical and the systematic.
+24;135747_58376130;21/09/26;05:26:10.94;0;26;Cascade;249.4993;-35.7347;10.18;5.58;34.86;0.3110;IceCube Cascade event. The position error is the combined statistical and the systematic.
+25;135196_31863828;21/04/16;01:58:00.70;0;26;Cascade;194.1867;-6.2888;19.85;10.89;30.20;0.9378;IceCube Cascade event. The position error is the combined statistical and the systematic.
+26;135136_69399950;21/03/29;16:40:29.22;0;26;Cascade;32.4624;-24.5896;11.32;6.21;88.23;0.3110;IceCube Cascade event. The position error is the combined statistical and the systematic.
+27;134912_80902176;21/01/21;02:55:00.76;0;26;Cascade;211.1333;-5.8941;20.93;11.48;90.07;0.3637;IceCube Cascade event. The position error is the combined statistical and the systematic.
