@@ -10,31 +10,30 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 '''
-plotting delta alpha and signal-to-noise
+Plotting delta alpha and signal-to-noise ratio for each object of the LHAASO catalog.
 '''
 
-
-res = 4.7
-circle = np.pi * res**2
-DA_c = np.cos(4.7 * np.pi / 180)
+res = 4.7 # Carpet resolution, deg
+circle = np.pi * res**2 #Signal circle
+DA_c = np.cos(4.7 * np.pi / 180) #Signal circle converted to delta alpha
 
 class LHAASO():
     def __init__(self):
-        self.name = None
-        self.RA  = None
-        self.DEC = None
-        self.unc95 = None
-        self.detect = None
+        self.name = None #Object name
+        self.RA  = None #Right Ascension
+        self.DEC = None #Declination
+        self.unc95 = None #95% uncertainty
+        self.detect = None #LHAASO detector type
 
 class Carpet():
     def __init__(self):
-        self.date = None
-        self.time = None
-        self.RA  = None
-        self.DEC = None
-        self.Ne = None
-        self.mjd = None
-        self.mu = None
+        self.date = None #Event date in dd.mm.yy format
+        self.time = None #Event time in hh:mm:ss format
+        self.RA  = None #Right Ascension
+        self.DEC = None #Declination
+        self.Ne = None #relativistic particle number
+        self.mjd = None #date+time
+        self.mu = None #Muon detector counter
 
 def CreateDir(save_dir):
     """
@@ -64,6 +63,9 @@ def CreateDir(save_dir):
     return
 
 def GetCarpetData(file):
+    '''
+    Getting Carpet data, assigning some column values as class attributes.
+    '''
     data = []
     fop = open(file)
     for line in fop.readlines():
@@ -95,16 +97,20 @@ def GetCarpetData(file):
     return data
         
 def equ2ga(equ):
-    """
-    Convert Equatorial to Galactic coordinates (J2000.0)
+    '''
+    Converts Equatorial to Galactic coordinates (J2000.0)
+    Source: https://www.atnf.csiro.au/people/Tobias.Westmeier/tools_coords.php
+
+    Parameters
+    ----------
+    [ra, dec] : array
+        Right Ascension and Declination in decimal degrees
     
-    Input: [ra,dec] in decimal degrees
-    Returns: [l,b] in decimal degrees
-    
-    Source: 
-    - https://www.atnf.csiro.au/people/Tobias.Westmeier/tools_coords.php
-    
-    """
+    Returns
+    -------
+    [l, b] : array
+        Galactic longitude and galactic latitude in decimal degrees
+    '''
     ra = np.radians(equ[0])
     dec = np.radians(equ[1])
 
@@ -124,6 +130,10 @@ def equ2ga(equ):
     return np.array([np.degrees(l), np.degrees(b)])
 
 def GetLHAASOData():
+    '''
+    Getting LHAASO data from the catalogue.
+    Downloaded at: https://cdsarc.cds.unistra.fr/viz-bin/cat/J/ApJS/271/25
+    '''
     data = []
     fop = open('catalog.dat')
     n = ''
@@ -149,41 +159,104 @@ def GetLHAASOData():
     return data
 
 def Angle(carpet_data, RA, DEC):
-    RA_b = RA * np.pi / 180
-    DEC_b = DEC * np.pi / 180
+    '''
+    Angle between the LHAASO object and a Carpet event.
+
+    Parameters
+    ----------
+    carpet_data : array
+        Array of Carpet events.
+    RA : float
+        Right Ascension of the LHAASO object.
+    DEC : float
+        Declination of the LHAASO object.
+
+    Returns
+    -------
+    da : array
+        Angle between the LHAASO object and the Carpet event.
+
+    '''
+    RA_b = RA * np.pi / 180 #LHAASO Right Ascension
+    DEC_b = DEC * np.pi / 180 #LHAASO Declination
     ra = [o.RA * np.pi / 180 for o in carpet_data]
     dec = [o.DEC * np.pi / 180 for o in carpet_data]
     
-    da = []
+    da = [] #delta alpha values
     for i in range(len(ra)):
         da.append(np.sin(DEC_b)*np.sin(dec[i]) + np.cos(DEC_b)*np.cos(dec[i])*np.cos(RA_b-ra[i]))
         
     return da
 
-def Area(carpet_data, da, RA, DEC):
-    DEC_b = DEC * np.pi / 180
-    decl = [o.DEC for o in carpet_data]
+def Area(carpet_data, lhaaso, da, RA, DEC):
+    '''
+    Calcutaling signal and background.
+
+    Parameters
+    ----------
+    carpet_data : array
+        Array of Carpet events.
+    lhaaso : array
+        Array of LHAASO objects.
+    da: array
+        Angle between the LHAASO object and the Carpet event.
+    RA : float
+        Right Ascension of the LHAASO object.
+    DEC : float
+        Declination of the LHAASO object.
+
+    Returns
+    -------
+    signal : float
+        Signal.
+    background : float
+        Noise.
+
+    '''
+    DEC_b = DEC * np.pi / 180 #LHAASO Declination converted to rad
+    decl = [o.DEC * np.pi / 180 for o in carpet_data] #Carpet Declination converted to rad
     
-    c = 0 #Количество событий из кружка
+    signal = 0 #Signal event counter. Signal is calculated from the Carpet resolution circle around the LHAASO object.
     for i in range(len(da)):
         if da[i] >= DA_c:
-            c += 1
+            signal += 1
    
-    p = 0 #Количество событий из полосы
+    background = 0 #Background event counter. Background is calculated from a strip, Declination (strip width) = signal circle diameter for all RA.
     for i in range(len(decl)):
         if abs(decl[i] - DEC_b / np.pi * 180) <= 4.7:
-            p += 1
+            background += 1
+
+    for lh in lhaaso:
+        dec = lh.DEC
+        theta1 = 90 - dec - res
+        theta2 = 90 - dec + res
+        omega1 = 2 * np.pi * (1 - np.cos(theta1 * np.pi / 180))
+        omega2 = 2 * np.pi * (1 - np.cos(theta2 * np.pi / 180))
+        omega = abs(omega1 - omega2) * 180**2 / (np.pi)**2
+        omega -= circle
     
-    p -= c
-    p /= omega
-    c /= circle
+    signal -= background #Subtracting signal from background
+    background /= omega #Background density
+    signal /= circle #Signal density
     
-    return c, p
+    return signal, background
 
 def PlotAngle(carpet_data, da, files_dir):
-    t = [o.mjd for o in carpet_data]
-    m = [o.mu for o in carpet_data]
-    ne = [o.Ne for o in carpet_data]
+    '''
+    Plotting the angle between the LHAASO object and the Carpet event.
+
+    Parameters
+    ----------
+    carpet_data : array
+        Array of Carpet events.
+    da : array
+        Angle between the LHAASO object and the Carpet event.
+    files_dir : str
+        Name of the directory where the plots will be saved.
+    '''
+    t = [o.mjd for o in carpet_data] #datetime
+    m = [o.mu for o in carpet_data] #muon counter
+    ne = [o.Ne for o in carpet_data] #relativistic particles counter 
     
     fig, ax = plt.subplots()
     fig.set_size_inches(40,10)
@@ -206,6 +279,20 @@ def PlotAngle(carpet_data, da, files_dir):
     return
 
 def PlotSN(carpet_data, RA, DEC, name_dir):
+    '''
+    Plotting the S/N.
+
+    Parameters
+    ----------
+    carpet_data : array
+        Array of Carpet events.
+    RA : float
+        Right Ascension of the LHAASO object.
+    DEC : float
+        Declination of the LHAASO object.
+    name_dir : str
+        Name of the directory where the plots will be saved.
+    '''
     t = [o.mjd for o in carpet_data]
     time_s = list(set([m.strftime('%m.%y') for m in t]))
     time_s = sorted([datetime.strptime(d, '%m.%y') for d in time_s])
@@ -218,7 +305,7 @@ def PlotSN(carpet_data, RA, DEC, name_dir):
                 idx.append(i)
         da = Angle(carpet_data[idx[0]:idx[-1]], lh.RA, lh.DEC)
         c, p = Area(carpet_data[idx[0]:idx[-1]], da, lh.RA, lh.DEC)
-        if p!=0: 
+        if p!=0: #checking if background is 0 so that we don't divide by 0
             sn.append(c / p)
         else:
             sn.append(0)
@@ -242,32 +329,21 @@ def PlotSN(carpet_data, RA, DEC, name_dir):
 if __name__ == "__main__":
     files = ['2018_097-357_n.txt', '2019_001-365_n.txt', '2020_001-366_n.txt', \
              '2021_001-365_n.txt', '2022_001-365_n.txt', '2023_001-365_n.txt', \
-             '2024_001-102_n.txt']
+             '2024_001-102_n.txt'] #files from 2018 to 2024
     lhaaso = GetLHAASOData()
     
-    for lh in lhaaso:
-        dec = lh.DEC
-        theta1 = 90 - dec - res
-        theta2 = 90 - dec + res
-        omega1 = 2 * np.pi * (1 - np.cos(theta1 * np.pi / 180))
-        omega2 = 2 * np.pi * (1 - np.cos(theta2 * np.pi / 180))
-        omega = abs(omega1 - omega2) * 180**2 / (np.pi)**2
-        omega -= circle
-        print(omega)
-        
-        carpet = []
-        for file in files:
-            c = GetCarpetData(file)
-            carpet += c
-            year = file.split('_')[0]
+    carpet = []
+    for file in files: #looping through all the files
+        c = GetCarpetData(file)
+        carpet += c
+        year = file.split('_')[0]
             
-        DA = Angle(carpet, lh.RA, lh.DEC)
+    DA = Angle(carpet, lh.RA, lh.DEC)
         
-        namedir=lh.name.split(' ')[0]
-        CreateDir(namedir)
-        PlotAngle(carpet, DA, namedir)
-        PlotSN(carpet, lh.RA, lh.DEC, namedir)
-        
+    namedir=lh.name.split(' ')[0]
+    CreateDir(namedir)
+    PlotAngle(carpet, DA, namedir)
+    PlotSN(carpet, lh.RA, lh.DEC, namedir)
     
     
         
