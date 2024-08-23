@@ -1,0 +1,1 @@
+#LHAASO name      Detect.   RA   DEC   DateC       TimeC   CRA  CDEC   Ne 
